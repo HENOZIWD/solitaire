@@ -1,13 +1,27 @@
 import { useState } from 'react';
 import styles from '../styles/Card.module.css';
 
-const Card = () => {
+interface ICardProps {
+  boardWidth: number;
+  boardHeight: number;
+}
+
+const Card = (props: ICardProps) => {
+
+  const baseFontSize = getComputedStyle(document.documentElement).getPropertyValue('font-size');
+  const cardWidth = +(baseFontSize.slice(0, baseFontSize.indexOf('px'))) * 5;
+  const cardHeight = +(baseFontSize.slice(0, baseFontSize.indexOf('px'))) * 5;
+  const gap = 32;
 
   const [clicked, setClicked] = useState<boolean>(false);
   const [position, setPosition] = useState({
     x: 0,
     y: 0,
   });
+
+  // useEffect(() => {
+  //   console.log(cardWidth);
+  // }, [])
 
   const mouseDown = (clickEvent: React.MouseEvent<HTMLDivElement>) => {
     clickEvent.preventDefault();
@@ -16,9 +30,26 @@ const Card = () => {
       const deltaX = moveEvent.clientX - clickEvent.clientX;
       const deltaY = moveEvent.clientY - clickEvent.clientY;
 
+      let nextX = position.x + deltaX;
+      let nextY = position.y + deltaY;
+
+      if (nextX < 0 + gap) {
+        nextX = 0 + Math.floor(gap / 4);
+      }
+      if (props.boardWidth - cardWidth - gap < nextX) {
+        nextX = props.boardWidth - cardWidth - Math.floor(gap / 4);
+      }
+
+      if (nextY < 0 + gap) {
+        nextY = 0 + Math.floor(gap / 4);
+      }
+      if (props.boardHeight - cardHeight - gap < nextY) {
+        nextY = props.boardHeight - cardHeight - Math.floor(gap / 4);
+      }
+
       setPosition({
-        x: position.x + deltaX,
-        y: position.y + deltaY,
+        x: nextX,
+        y: nextY,
       });
     };
 
@@ -40,6 +71,8 @@ const Card = () => {
       style={{ 
         transform: `translateX(${position.x}px) translateY(${position.y}px) scale(${clicked ? 0.9 : 1})`,
         cursor: `${clicked ? 'grabbing' : 'grab'}`,
+        width: `${cardWidth}px`,
+        height: `${cardHeight}px`,
       }}
     />
     </>

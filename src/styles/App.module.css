@@ -21,3 +21,9 @@
   width: 6rem;
   height: 6rem;
 }
+
+@media (max-width: 58rem) {
+  .container {
+    display: block;
+  }
+}

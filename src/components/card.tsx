@@ -2,8 +2,12 @@ import { useState } from 'react';
 import styles from '../styles/Card.module.css';
 
 interface ICardProps {
+  cardIndex: number;
+  xPos: number;
+  yPos: number;
   boardWidth: number;
   boardHeight: number;
+  movePosition: (i: number, x: number, y: number) => void;
 }
 
 const Card = (props: ICardProps) => {
@@ -15,14 +19,6 @@ const Card = (props: ICardProps) => {
   const gap = baseFontSize * 2;
 
   const [clicked, setClicked] = useState<boolean>(false);
-  const [position, setPosition] = useState({
-    x: 0,
-    y: 0,
-  });
-
-  // useEffect(() => {
-  //   console.log(cardWidth);
-  // }, [])
 
   const mouseDown = (clickEvent: React.MouseEvent<HTMLDivElement>) => {
     clickEvent.preventDefault();
@@ -31,8 +27,8 @@ const Card = (props: ICardProps) => {
       const deltaX = moveEvent.clientX - clickEvent.clientX;
       const deltaY = moveEvent.clientY - clickEvent.clientY;
 
-      let nextX = position.x + deltaX;
-      let nextY = position.y + deltaY;
+      let nextX = props.xPos + deltaX;
+      let nextY = props.yPos + deltaY;
 
       if (nextX < 0 + gap) {
         nextX = 0 + gap / 4;
@@ -54,10 +50,7 @@ const Card = (props: ICardProps) => {
         nextY = baseFontSize * 11.5;
       }
 
-      setPosition({
-        x: nextX,
-        y: nextY,
-      });
+      props.movePosition(props.cardIndex, nextX, nextY);
     };
 
     const mouseUp = () => {
@@ -76,12 +69,14 @@ const Card = (props: ICardProps) => {
       className={styles.card}
       onMouseDown={mouseDown}
       style={{ 
-        transform: `translateX(${position.x}px) translateY(${position.y}px) scale(${clicked ? 0.9 : 1})`,
+        transform: `translateX(${props.xPos}px) translateY(${props.yPos}px) scale(${clicked ? 0.9 : 1})`,
         cursor: `${clicked ? 'grabbing' : 'grab'}`,
         width: `${cardWidth}px`,
         height: `${cardHeight}px`,
       }}
-    />
+    >
+      {props.cardIndex + 1}
+    </div>
     </>
   );
 }

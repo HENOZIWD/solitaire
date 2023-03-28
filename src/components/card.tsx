@@ -8,10 +8,11 @@ interface ICardProps {
 
 const Card = (props: ICardProps) => {
 
-  const baseFontSize = getComputedStyle(document.documentElement).getPropertyValue('font-size');
-  const cardWidth = +(baseFontSize.slice(0, baseFontSize.indexOf('px'))) * 5;
-  const cardHeight = +(baseFontSize.slice(0, baseFontSize.indexOf('px'))) * 5;
-  const gap = 32;
+  const baseFontSizeString = getComputedStyle(document.documentElement).getPropertyValue('font-size');
+  const baseFontSize = +baseFontSizeString.slice(0, baseFontSizeString.indexOf('px'));
+  const cardWidth = baseFontSize * 5;
+  const cardHeight = baseFontSize * 5;
+  const gap = baseFontSize * 2;
 
   const [clicked, setClicked] = useState<boolean>(false);
   const [position, setPosition] = useState({
@@ -34,17 +35,23 @@ const Card = (props: ICardProps) => {
       let nextY = position.y + deltaY;
 
       if (nextX < 0 + gap) {
-        nextX = 0 + Math.floor(gap / 4);
+        nextX = 0 + gap / 4;
       }
       if (props.boardWidth - cardWidth - gap < nextX) {
-        nextX = props.boardWidth - cardWidth - Math.floor(gap / 4);
+        nextX = props.boardWidth - cardWidth - gap / 4;
       }
 
       if (nextY < 0 + gap) {
-        nextY = 0 + Math.floor(gap / 4);
+        nextY = 0 + gap / 4;
       }
       if (props.boardHeight - cardHeight - gap < nextY) {
-        nextY = props.boardHeight - cardHeight - Math.floor(gap / 4);
+        nextY = props.boardHeight - cardHeight - gap / 4;
+      }
+
+      if (baseFontSize * 22.5 - gap / 2 < nextX && nextX < baseFontSize * 22.5 + gap &&
+          baseFontSize * 11 - gap / 2 < nextY && nextY < baseFontSize * 11 + gap) {
+        nextX = baseFontSize * 23;
+        nextY = baseFontSize * 11.5;
       }
 
       setPosition({

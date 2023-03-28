@@ -1,4 +1,5 @@
 .board {
+  position: relative;
   margin: 2rem;
   background-color: rgb(220, 220, 220);
   width: 50rem;
@@ -7,7 +8,16 @@
 }
 
 .container {
-
   display: flex;
   justify-content: center;
+}
+
+.cell {
+  position: absolute;
+  left: 22.5rem;
+  top: 11rem;
+  background-color: black;
+  border-radius: 1.5rem;
+  width: 6rem;
+  height: 6rem;
 }

@@ -12,9 +12,19 @@ const App = () => {
     <>
     <div className={styles.container}>
       <div className={styles.board}>
-        <Card boardWidth={boardWidth} boardHeight={boardHeight} />
-        <Card boardWidth={boardWidth} boardHeight={boardHeight} />
-        <Card boardWidth={boardWidth} boardHeight={boardHeight} />
+        <div className={styles.cell} />
+        <Card
+          boardWidth={boardWidth}
+          boardHeight={boardHeight}
+        />
+        <Card
+          boardWidth={boardWidth}
+          boardHeight={boardHeight}
+        />
+        <Card
+          boardWidth={boardWidth}
+          boardHeight={boardHeight}
+        />
       </div>
     </div>
     </>

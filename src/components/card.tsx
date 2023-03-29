@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from '../styles/Card.module.css';
 
 interface ICardProps {
@@ -8,6 +8,8 @@ interface ICardProps {
   boardWidth: number;
   boardHeight: number;
   movePosition: (i: number, x: number, y: number) => void;
+  pushStack: (i: number) => void;
+  popStack: (i: number) => void;
 }
 
 const Card = (props: ICardProps) => {
@@ -19,6 +21,15 @@ const Card = (props: ICardProps) => {
   const gap = baseFontSize * 2;
 
   const [clicked, setClicked] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!clicked && props.xPos === baseFontSize * 23 && props.yPos === baseFontSize * 11.5) {
+      props.pushStack(props.cardIndex + 1);
+    }
+    else if (!clicked && !(props.xPos === baseFontSize * 23 && props.yPos === baseFontSize * 11.5)){
+      props.popStack(props.cardIndex + 1);
+    }
+  }, [clicked]);
 
   const mouseDown = (clickEvent: React.MouseEvent<HTMLDivElement>) => {
     clickEvent.preventDefault();
@@ -70,7 +81,6 @@ const Card = (props: ICardProps) => {
       onMouseDown={mouseDown}
       style={{ 
         transform: `translateX(${props.xPos}px) translateY(${props.yPos}px) scale(${clicked ? 0.9 : 1})`,
-        cursor: `${clicked ? 'grabbing' : 'grab'}`,
         width: `${cardWidth}px`,
         height: `${cardHeight}px`,
       }}

@@ -14,15 +14,30 @@ const App = () => {
   const boardWidth = baseFontSize * 50;
   const boardHeight = baseFontSize * 30;
   const [cardPositions, setCardPositions] = useState<ICardPosition[]>([
-    { x: 0, y: 0 },
-    { x: baseFontSize, y: 0 },
-    { x: baseFontSize * 2, y: 0 },
-    { x: baseFontSize * 3, y: 0 },
-    { x: baseFontSize * 4, y: 0 },
-    { x: baseFontSize * 5, y: 0 },
-    { x: baseFontSize * 6, y: 0 },
-    { x: baseFontSize * 7, y: 0 },
+    { x: baseFontSize / 2, y: baseFontSize / 2 },
+    { x: baseFontSize * 4, y: baseFontSize / 2 },
+    { x: baseFontSize * 8, y: baseFontSize / 2 },
+    { x: baseFontSize * 12, y: baseFontSize / 2 },
+    { x: baseFontSize * 16, y: baseFontSize / 2 },
+    { x: baseFontSize * 20, y: baseFontSize / 2 },
   ]);
+  const [stack, setStack] = useState<Array<number>>([0]);
+
+  const pushStack = (i: number) => {
+    if (stack[stack.length - 1] + 1 === i) {
+      const newStack = stack.slice();
+      newStack.push(i);
+      setStack(newStack);
+    }
+  }
+
+  const popStack = (i: number) => {
+    if (stack[stack.length - 1] === i) {
+      const newStack = stack.slice();
+      newStack.pop();
+      setStack(newStack);
+    }
+  }
 
   const movePosition = (i: number, x: number, y: number) => {
     const newCardPositions = cardPositions.slice();
@@ -44,9 +59,16 @@ const App = () => {
             boardWidth={boardWidth}
             boardHeight={boardHeight}
             movePosition={movePosition}
+            pushStack={pushStack}
+            popStack={popStack}
           />
         ))}
       </div>
+      {stack.map((num, index) => (
+        <div key={index}>
+          {num}
+        </div>
+      ))}
     </div>
     </>
   );

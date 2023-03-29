@@ -62,7 +62,7 @@ const Card = (props: ICardProps) => {
       }
 
       props.movePosition(props.cardIndex, nextX, nextY);
-    };
+    }
 
     const mouseUp = () => {
       setClicked(false);
@@ -72,7 +72,7 @@ const Card = (props: ICardProps) => {
     setClicked(true);
     document.addEventListener('mousemove', mouseMove);
     document.addEventListener('mouseup', mouseUp, { once: true });
-  };
+  }
 
   return (
     <>

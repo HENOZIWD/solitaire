@@ -9,17 +9,21 @@ export interface ICardPosition {
 
 const App = () => {
 
+  const getRandomArbitrary = (min: number, max: number) => {
+    return Math.random() * (max - min) + min;
+  }
+
   const baseFontSizeString = getComputedStyle(document.documentElement).getPropertyValue('font-size');
   const baseFontSize = +baseFontSizeString.slice(0, baseFontSizeString.indexOf('px'));
   const boardWidth = baseFontSize * 50;
   const boardHeight = baseFontSize * 30;
   const [cardPositions, setCardPositions] = useState<ICardPosition[]>([
-    { x: baseFontSize / 2, y: baseFontSize / 2 },
-    { x: baseFontSize * 4, y: baseFontSize / 2 },
-    { x: baseFontSize * 8, y: baseFontSize / 2 },
-    { x: baseFontSize * 12, y: baseFontSize / 2 },
-    { x: baseFontSize * 16, y: baseFontSize / 2 },
-    { x: baseFontSize * 20, y: baseFontSize / 2 },
+    { x: getRandomArbitrary(0, boardWidth - baseFontSize * 5), y: getRandomArbitrary(0, boardHeight - baseFontSize * 5) },
+    { x: getRandomArbitrary(0, boardWidth - baseFontSize * 5), y: getRandomArbitrary(0, boardHeight - baseFontSize * 5) },
+    { x: getRandomArbitrary(0, boardWidth - baseFontSize * 5), y: getRandomArbitrary(0, boardHeight - baseFontSize * 5) },
+    { x: getRandomArbitrary(0, boardWidth - baseFontSize * 5), y: getRandomArbitrary(0, boardHeight - baseFontSize * 5) },
+    { x: getRandomArbitrary(0, boardWidth - baseFontSize * 5), y: getRandomArbitrary(0, boardHeight - baseFontSize * 5) },
+    { x: getRandomArbitrary(0, boardWidth - baseFontSize * 5), y: getRandomArbitrary(0, boardHeight - baseFontSize * 5) },
   ]);
   const [stack, setStack] = useState<Array<number>>([0]);
 
@@ -43,7 +47,7 @@ const App = () => {
     const newCardPositions = cardPositions.slice();
     newCardPositions[i] = { x: x, y: y };
     setCardPositions(newCardPositions);
-  };
+  }
 
   return (
     <>

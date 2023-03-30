@@ -41,19 +41,19 @@ const App = () => {
     if (cardStack[i] === i) {
       return i;
     }
-    const newStack = cardStack.slice();
-    const parent = find(cardStack[i]);
-    cardStack[i] = parent;
-    setCardStack(newStack);
+    // const newStack = cardStack.slice();
+    // const parent = find(cardStack[i]);
+    // cardStack[i] = parent;
+    // setCardStack(newStack);
 
-    return parent;
+    return find(cardStack[i]);
   }
 
   const stackCard = (a: number, b: number) => {
-    const aParent = find(a);
+    // const aParent = find(a);
 
     const newStack = cardStack.slice();
-    newStack[b] = aParent;
+    newStack[b] = a;
     setCardStack(newStack);
   }
 
@@ -113,16 +113,29 @@ const App = () => {
   }
 
   const movePosition = (i: number, newPos: ICardPosition) => {
+    const parent = find(i);
     const newCardPositions = cardPositions.slice();
     newCardPositions[i] = checkBoundary(i, newPos);
+    let count = 1;
+    for (let index = i + 1; index < cardPositions.length; index++) {
+      if (find(index) === parent) {
+        newCardPositions[index] = { x: newCardPositions[i].x, y: newCardPositions[i].y + stackGap * count };
+        count++;
+      }
+    }
     setCardPositions(newCardPositions);
   }
 
   const moveRealPosition = (i: number, newPos: ICardPosition) => {
+    const parent = find(i);
     const newRealCardPositions = realCardPositions.slice();
     newRealCardPositions[i] = {...newPos};
+    for (let index = i + 1; index < realCardPositions.length; index++) {
+      if (find(index) === parent) {
+        newRealCardPositions[index] = { x: newPos.x, y: newPos.y + stackGap * (index - i) };
+      }
+    }
     setRealCardPositions(newRealCardPositions);
-    setCardPositions(newRealCardPositions);
   }
 
   return (

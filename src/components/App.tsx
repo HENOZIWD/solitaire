@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Card from './card';
 import styles from '../styles/App.module.css';
 
@@ -15,7 +15,8 @@ const App = () => {
   const boardHeight = baseFontSize * 30;
   const cardWidth = baseFontSize * 5;
   const cardHeight = baseFontSize * 5;
-  const gap = baseFontSize;
+  const gap = baseFontSize; 
+  const stackGap = baseFontSize * 3 / 2;
   const [cardPositions, setCardPositions] = useState<ICardPosition[]>([
     { x: 0 + gap / 2, y: 0 + gap / 2 },
     { x: 0 + gap / 2 + cardWidth * 2, y: 0 + gap / 2 },
@@ -30,31 +31,57 @@ const App = () => {
     { x: 0 + gap / 2 + cardWidth * 6, y: 0 + gap / 2 },
     { x: 0 + gap / 2 + cardWidth * 8, y: 0 + gap / 2 }, 
   ]);
-  // const [cardStacks, setCardStacks] = useState<number[][]>(Array.from({ length: 5 }, () => []));
+  const [cardStack, setCardStack] = useState<number[]>(Array.from({ length: cardPositions.length }, (v, i) => i));
 
-  // const stackCard = (i: number) => {
+  useEffect(() => {
+    console.log(cardStack);
+  }, [cardStack])
 
-  // }
+  const find = (i: number): number => {
+    if (cardStack[i] === i) {
+      return i;
+    }
+    const newStack = cardStack.slice();
+    const parent = find(cardStack[i]);
+    cardStack[i] = parent;
+    setCardStack(newStack);
+
+    return parent;
+  }
+
+  const stackCard = (a: number, b: number) => {
+    const aParent = find(a);
+
+    const newStack = cardStack.slice();
+    newStack[b] = aParent;
+    setCardStack(newStack);
+  }
 
   const checkCardBoundary = (i: number, pos: ICardPosition) => {
     let newPos = {...pos};
     let isStacked = false;
+    let cardIdx = 0;
 
-
-    for (let cardIdx = 0; cardIdx < i; cardIdx++) {
+    while (cardIdx < i) {
       if (cardIdx !== i &&
         cardPositions[cardIdx].x - gap < newPos.x &&
         newPos.x < cardPositions[cardIdx].x + gap &&
-        cardPositions[cardIdx].y + baseFontSize * 3 / 2 - gap < newPos.y &&
-        newPos.y < cardPositions[cardIdx].y + baseFontSize * 3 / 2 + gap) {
+        cardPositions[cardIdx].y + stackGap - gap < newPos.y &&
+        newPos.y < cardPositions[cardIdx].y + stackGap + gap) {
 
-          newPos = { x: cardPositions[cardIdx].x, y: cardPositions[cardIdx].y + baseFontSize * 3 / 2};
+          newPos = { x: cardPositions[cardIdx].x, y: cardPositions[cardIdx].y + stackGap};
           isStacked = true;
           break;
       }
+
+      cardIdx++;
     }
 
-    return { isStacked: isStacked, newPos: newPos };
+    return {
+      newPos: newPos,
+      isStacked: isStacked,
+      stackIdx: cardIdx,
+    };
   }
 
   const checkBoardBoundary = (i: number, pos: ICardPosition) => {
@@ -115,6 +142,7 @@ const App = () => {
             movePosition={movePosition}
             moveRealPosition={moveRealPosition}
             checkCardBoundary={checkCardBoundary}
+            stackCard={stackCard}
           />
         ))}
       </div>

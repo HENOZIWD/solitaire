@@ -12,7 +12,8 @@ interface ICardProps {
   cardHeight: number;
   movePosition: (i: number, newPos: ICardPosition) => void;
   moveRealPosition: (i: number, newPos: ICardPosition) => void;
-  checkCardBoundary: (i: number, pos: ICardPosition) => { isStacked: boolean, newPos: ICardPosition }
+  checkCardBoundary: (i: number, pos: ICardPosition) => { newPos: ICardPosition, isStacked: boolean, stackIdx: number };
+  stackCard: (a: number, b: number) => void;
 }
 
 const Card = (props: ICardProps) => {
@@ -23,6 +24,7 @@ const Card = (props: ICardProps) => {
     if (!clicked) {
       const moveResult = props.checkCardBoundary(props.cardIndex, props.pos);
       if (moveResult.isStacked) {
+        props.stackCard(moveResult.stackIdx, props.cardIndex);
         props.moveRealPosition(props.cardIndex, moveResult.newPos);
       }
       else {

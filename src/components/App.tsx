@@ -20,6 +20,18 @@ const App = () => {
     { x: 500, y: 100 },
   ])
 
+  const checkBoundary = (val: number, min: number, max: number, pad: number) => {
+    
+    if (val < min + pad) {
+      return min + pad;
+    }
+    else if (max - pad < val) {
+      return max - pad;
+    }
+
+    return val;
+  }
+
   return (
     <>
     <div
@@ -36,7 +48,10 @@ const App = () => {
 
             const mouseMove = (mouseMoveEvent: MouseEvent) => {
               const newCardPos = cardPositions.slice();
-              newCardPos[i] = { x: mouseMoveEvent.pageX - cardWidth / 2, y: mouseMoveEvent.pageY - cardHeight / 2 };
+              newCardPos[i] = {
+                x: checkBoundary(mouseMoveEvent.pageX - cardWidth / 2, 0, window.innerWidth - cardWidth, baseFontSize),
+                y: checkBoundary(mouseMoveEvent.pageY - cardHeight / 2, 0, window.innerHeight - cardHeight, baseFontSize)
+              };
               setCardPositions(newCardPos);
             }
 

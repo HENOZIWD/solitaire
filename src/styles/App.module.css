@@ -3,6 +3,13 @@
   height: 100vh;
 }
 
+.deck {
+  position: fixed;
+  background-color: gray;
+  width: 6rem;
+  height: 8rem;
+}
+
 .card {
   position: fixed;
   background-color: white;
@@ -12,4 +19,9 @@
   text-align: center;
   box-shadow: 0px 0.25rem 1rem black;
   user-select: none;
+  cursor: grab;
+}
+
+.card:active {
+  cursor: grabbing;
 }

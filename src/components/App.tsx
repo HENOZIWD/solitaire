@@ -23,7 +23,7 @@ const App = () => {
     { x: 400, y: 500, isClicked: false, deckIndex: -1 },
     { x: 500, y: 500, isClicked: false, deckIndex: -1 },
   ]);
-  const [zIndex, setZIndex] = useState<number>(1);
+  // const [zIndex, setZIndex] = useState<number>(1);
   const [deck, setDeck] = useState<number[][]>(Array.from({ length: 7 }, () => []));
   const [focusedDeck, setFocusedDeck] = useState<number>(-1);
 
@@ -62,12 +62,12 @@ const App = () => {
     return deckIndex;
   }
 
-  const stackToDeck = (cardIndex: number, prevDeckIndex: number, nextDeckIndex: number) => {
+  const stackToDeck = (cardStack: number[], prevDeckIndex: number, nextDeckIndex: number) => {
     const newDeck = deck.slice();
     if (prevDeckIndex !== -1) {
-      newDeck[prevDeckIndex] = newDeck[prevDeckIndex].filter(d => d !== cardIndex);
+      newDeck[prevDeckIndex] = newDeck[prevDeckIndex].filter(d => !cardStack.includes(d));
     }
-    newDeck[nextDeckIndex].push(cardIndex);
+    newDeck[nextDeckIndex].push(...cardStack);
     setDeck(newDeck);
   }
 
@@ -95,59 +95,90 @@ const App = () => {
           onMouseDown={(mouseDownEvent) => {
             mouseDownEvent.preventDefault();
             mouseDownEvent.stopPropagation();
-            let deckIndex = cardDatas[i].deckIndex;
+            const deckIndex = cardDatas[i].deckIndex;
+            let selectedStack = [i];
+            if (deckIndex !== -1) {
+              selectedStack = deck[deckIndex].slice(deck[deckIndex].indexOf(i));
+            }
 
-            let prevX = card.x;
-            let prevY = card.y;
+            const prevX = card.x;
+            const prevY = card.y;
             checkDeck(deckIndex, mouseDownEvent.pageX, mouseDownEvent.pageY)
 
             const mouseMove = (mouseMoveEvent: MouseEvent) => {
               const newCardDatas = cardDatas.slice();
-              const nextX = checkBoundary(mouseMoveEvent.pageX - cardWidth / 2, 0, window.innerWidth - cardWidth, baseFontSize);
-              const nextY = checkBoundary(mouseMoveEvent.pageY - baseFontSize * 2, 0, window.innerHeight - cardHeight, baseFontSize);
+
+              selectedStack.forEach((cardIndex, stackIndex) => {
+                newCardDatas[cardIndex] = {
+                  ...newCardDatas[cardIndex],
+                  x: checkBoundary(mouseMoveEvent.pageX - cardWidth / 2,
+                                   0,
+                                   window.innerWidth - cardWidth,
+                                   baseFontSize),
+                  y: checkBoundary(mouseMoveEvent.pageY - baseFontSize * 2 + stackIndex * baseFontSize * 2,
+                                   0,
+                                   window.innerHeight - cardHeight - (selectedStack.length - stackIndex - 1) * baseFontSize * 2,
+                                   baseFontSize),
+                  isClicked: true,
+                };
+              });
 
               if (checkDeck(deckIndex, mouseMoveEvent.pageX, mouseMoveEvent.pageY) === -1) {
                 setFocusedDeck(-1);
               }
-              newCardDatas[i] = {
-                ...newCardDatas[i],
-                x: nextX,
-                y: nextY,
-                isClicked: true,
-              };
               setCardDatas(newCardDatas);
             }
 
             const mouseUp = (mouseUpEvent: MouseEvent) => {
+              // console.log(i);
               const moveResult = checkDeck(deckIndex, mouseUpEvent.pageX, mouseUpEvent.pageY);
-              if (moveResult !== -1) {
-                prevX = 100 + moveResult * 100 + baseFontSize / 2;
-                prevY = 100 + baseFontSize / 2 + deck[moveResult].length * baseFontSize * 2;
-                stackToDeck(i, deckIndex, moveResult);
-                deckIndex = moveResult;
-              }
               const newCardDatas = cardDatas.slice();
-              newCardDatas[i] = {
-                x: prevX,
-                y: prevY,
-                isClicked: false,
-                deckIndex: deckIndex,
-              };
+
+              selectedStack.forEach((cardIndex, stackIndex) => {
+                if (moveResult !== -1) {
+                  newCardDatas[cardIndex] = {
+                    x: 100 + moveResult * 100 + baseFontSize / 2,
+                    y: 100 + baseFontSize / 2 + (deck[moveResult].length + stackIndex) * baseFontSize * 2,
+                    isClicked: false,
+                    deckIndex: moveResult,
+                  };
+                }
+                else {
+                  newCardDatas[cardIndex] = {
+                    x: prevX,
+                    y: prevY + stackIndex * baseFontSize * 2,
+                    isClicked: false,
+                    deckIndex: deckIndex,
+                  };
+                }
+              });
+
+              if (moveResult !== -1) {
+                stackToDeck(selectedStack, deckIndex, moveResult);
+              }
               setCardDatas(newCardDatas);
               setFocusedDeck(-1);
               document.removeEventListener('mousemove', mouseMove);
             }
 
             const newCardDatas = cardDatas.slice();
-            newCardDatas[i] = {
-              ...newCardDatas[i],
-              x: checkBoundary(mouseDownEvent.pageX - cardWidth / 2, 0, window.innerWidth - cardWidth, baseFontSize),
-              y: checkBoundary(mouseDownEvent.pageY - baseFontSize * 2, 0, window.innerHeight - cardHeight, baseFontSize),
-              isClicked: true,
-            };
+            selectedStack.forEach((cardIndex, stackIndex) => {
+              newCardDatas[cardIndex] = {
+                ...newCardDatas[cardIndex],
+                x: checkBoundary(mouseDownEvent.pageX - cardWidth / 2,
+                                 0,
+                                 window.innerWidth - cardWidth,
+                                 baseFontSize),
+                y: checkBoundary(mouseDownEvent.pageY - baseFontSize * 2 + stackIndex * baseFontSize * 2,
+                                 0,
+                                 window.innerHeight - cardHeight - (selectedStack.length - stackIndex - 1) * baseFontSize * 2,
+                                 baseFontSize),
+                isClicked: true,
+              };
+            });
             setCardDatas(newCardDatas);
-            mouseDownEvent.currentTarget.style.zIndex = zIndex.toString();
-            setZIndex(z => z + 1);
+            // mouseDownEvent.currentTarget.style.zIndex = zIndex.toString();
+            // setZIndex(z => z + 1);
             // console.log(zIndex);
             document.addEventListener('mousemove', mouseMove);
             document.addEventListener('mouseup', mouseUp, { once: true });

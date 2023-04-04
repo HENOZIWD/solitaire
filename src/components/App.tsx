@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from '../styles/App.module.css';
 
 interface ICardPosition {
@@ -14,8 +14,11 @@ const App = () => {
   const baseFontSize = +baseFontSizeString.slice(0, baseFontSizeString.indexOf('px'));
   const cardWidth = baseFontSize * 5;
   const cardHeight = baseFontSize * 7;
+  const deckLeft = 200;
+  const deckTop = 200;
   const deckWidth = baseFontSize * 6;
   const deckHeight = baseFontSize * 8;
+
   const [cardDatas, setCardDatas] = useState<ICardPosition[]>([
     { x: 100, y: 500, isClicked: false, deckIndex: -1 },
     { x: 200, y: 500, isClicked: false, deckIndex: -1 },
@@ -23,9 +26,11 @@ const App = () => {
     { x: 400, y: 500, isClicked: false, deckIndex: -1 },
     { x: 500, y: 500, isClicked: false, deckIndex: -1 },
   ]);
-  // const [zIndex, setZIndex] = useState<number>(1);
+  const [zIndex, setZIndex] = useState<number>(1);
   const [deck, setDeck] = useState<number[][]>(Array.from({ length: 7 }, () => []));
   const [focusedDeck, setFocusedDeck] = useState<number>(-1);
+
+  const cardRefs = useRef<HTMLDivElement[] | null[]>([]);
 
   useEffect(() => {
     console.log(deck);
@@ -47,8 +52,8 @@ const App = () => {
     let deckIndex = -1;
     for (let i = 0; i < deck.length; i++) {
       if (i !== prevDeckIndex) {
-        const currentDeckLeft = 100 + i * 100;
-        const currentDeckTop = 100 + deck[i].length * baseFontSize * 2;
+        const currentDeckLeft = deckLeft + i * 100;
+        const currentDeckTop = deckTop + deck[i].length * baseFontSize * 2;
         if (currentDeckLeft < x && x < currentDeckLeft + deckWidth &&
             currentDeckTop < y && y < currentDeckTop + deckHeight) {
           
@@ -81,9 +86,9 @@ const App = () => {
           key={i}
           className={styles.deck}
           style={{
-            left: 100 + i * 100,
-            top: 100,
-            border: `${focusedDeck === i ? 1 : 0}px solid yellow`
+            left: deckLeft + i * 100,
+            top: deckTop,
+            border: `${focusedDeck === i ? 2 : 0}px solid yellow`
           }}
         />
       ))}
@@ -91,6 +96,7 @@ const App = () => {
         <div
           key={i}
           className={styles.card}
+          ref={(el) => cardRefs.current[i] = el}
           style={{ transform: `translateX(${card.x}px) translateY(${card.y}px) scale(${card.isClicked ? 0.9 : 1})` }}
           onMouseDown={(mouseDownEvent) => {
             mouseDownEvent.preventDefault();
@@ -130,15 +136,14 @@ const App = () => {
             }
 
             const mouseUp = (mouseUpEvent: MouseEvent) => {
-              // console.log(i);
               const moveResult = checkDeck(deckIndex, mouseUpEvent.pageX, mouseUpEvent.pageY);
               const newCardDatas = cardDatas.slice();
 
               selectedStack.forEach((cardIndex, stackIndex) => {
                 if (moveResult !== -1) {
                   newCardDatas[cardIndex] = {
-                    x: 100 + moveResult * 100 + baseFontSize / 2,
-                    y: 100 + baseFontSize / 2 + (deck[moveResult].length + stackIndex) * baseFontSize * 2,
+                    x: deckLeft + moveResult * 100 + baseFontSize / 2,
+                    y: deckTop + baseFontSize / 2 + (deck[moveResult].length + stackIndex) * baseFontSize * 2,
                     isClicked: false,
                     deckIndex: moveResult,
                   };
@@ -175,11 +180,16 @@ const App = () => {
                                  baseFontSize),
                 isClicked: true,
               };
+              
+              if (cardRefs.current[cardIndex] !== null) {
+                cardRefs.current[cardIndex]!.style.zIndex = (zIndex + stackIndex).toString();
+              }
             });
             setCardDatas(newCardDatas);
-            // mouseDownEvent.currentTarget.style.zIndex = zIndex.toString();
-            // setZIndex(z => z + 1);
-            // console.log(zIndex);
+            setZIndex(zIndex + selectedStack.length);
+
+            console.log(zIndex);
+
             document.addEventListener('mousemove', mouseMove);
             document.addEventListener('mouseup', mouseUp, { once: true });
           }}

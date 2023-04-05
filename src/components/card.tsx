@@ -3,21 +3,28 @@ import styles from '../styles/Card.module.css';
 
 interface ICardProps {
   cardIndex: number;
+  suit: string;
+  rank: string;
   x: number;
   y: number;
   onMouseDown: (mouseDownEvent: React.MouseEvent) => void;
   isClicked: boolean;
+  status: string;
 }
 
 const Card = forwardRef<HTMLDivElement, ICardProps>((props: ICardProps, ref) => {
+
   return (
     <div
       className={styles.card}
       ref={ref}
-      style={{ transform: `translateX(${props.x}px) translateY(${props.y}px) scale(${props.isClicked ? 0.9 : 1})` }}
+      style={{ 
+        transform: `translateX(${props.x}px) translateY(${props.y}px) scale(${props.isClicked ? 0.9 : 1})`,
+        backgroundColor: `${props.status === 'open' ? 'white' : 'lightblue'}`,
+      }}
       onMouseDown={props.onMouseDown}
     >
-      {props.cardIndex + 1}
+      {props.status === 'open' && props.suit + ' ' + props.rank}
     </div>
   )
 });

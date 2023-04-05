@@ -7,6 +7,7 @@ interface ICardPosition {
   y: number;
   isClicked: boolean;
   deckIndex: number;
+  topDeckIndex: number;
   status: string;
 }
 
@@ -22,12 +23,15 @@ const App = () => {
   const deckHeight = baseFontSize * 8;
   const stockLeft = baseFontSize * 3;
   const stockTop = baseFontSize * 3;
+  const topDeckLeft = baseFontSize * 33;
+  const topDeckTop = baseFontSize * 3;
 
   const [cardDatas, setCardDatas] = useState<ICardPosition[]>(Array.from({ length: 52 }, () => ({
       x: 0,
       y: 0,
       isClicked: false,
       deckIndex: -1,
+      topDeckIndex: -1,
       status: 'stock',
     })));
   const [zIndex, setZIndex] = useState<number>(1);
@@ -42,6 +46,7 @@ const App = () => {
     [10, 20, 47, 32, 19, 29, 11],
   ]);
   const [focusedDeck, setFocusedDeck] = useState<number>(-1);
+  const [focusedTopDeck, setFocusedTopDeck] = useState<number>(-1);
   const [stock, setStock] = useState<number[]>([
     4, 6, 9, 12, 16, 18, 23, 24, 25, 26, 27, 28, 31, 34, 35,
     36, 37, 39, 40, 41, 42, 45, 46, 49,
@@ -54,7 +59,7 @@ const App = () => {
   useEffect(() => {
     const newCardDatas = cardDatas.slice();
     deck.forEach((d) => {
-      if (cardDatas[d[d.length - 1]].status === 'fold') {
+      if (d.length > 0 && cardDatas[d[d.length - 1]].status === 'fold') {
         newCardDatas[d[d.length - 1]] = {
           ...newCardDatas[d[d.length - 1]],
           status: 'open',
@@ -64,6 +69,10 @@ const App = () => {
     setCardDatas(newCardDatas);
     console.log(deck);
   }, [deck])
+
+  useEffect(() => {
+    console.log(topDeck);
+  }, [topDeck])
 
   useEffect(() => {
     /*
@@ -114,6 +123,42 @@ const App = () => {
     return val;
   }
 
+  const checkTopDeck = (cardIndex: number, prevTopDeckIndex: number, x: number, y: number) => {
+    let topDeckIndex = -1;
+    const suitIndex = Math.floor(cardIndex / 13);
+    const currentTopDeckLeft = topDeckLeft + suitIndex * baseFontSize * 7;
+
+    if (prevTopDeckIndex !== suitIndex &&
+        currentTopDeckLeft < x && x < currentTopDeckLeft + deckWidth &&
+        topDeckTop < y && y < topDeckTop + deckHeight &&
+        topDeck[suitIndex].length === cardIndex % 13) {
+      
+      setFocusedTopDeck(suitIndex);
+      topDeckIndex = suitIndex;
+    }
+
+    return topDeckIndex;
+  }
+
+  const stackToTopDeck = (cardIndex: number, prevDeckIndex: number, suit: number) => {
+    let newStock = stock.slice();
+    const newDeck = deck.slice();
+    const newTopDeck = topDeck.slice();
+
+    if (prevDeckIndex === -1) { // stocked
+      newStock = newStock.filter(s => s !== cardIndex);
+    }
+    else { // in deck
+      newDeck[prevDeckIndex] = newDeck[prevDeckIndex].filter(d => d !== cardIndex)
+    }
+
+    newTopDeck[suit].push(cardIndex);
+
+    setStock(newStock);
+    setDeck(newDeck);
+    setTopDeck(newTopDeck);
+  }
+
   const checkDeck = (cardIndex: number, prevDeckIndex: number, x: number, y: number) => {
     let deckIndex = -1;
     for (let i = 0; i < deck.length; i++) {
@@ -138,23 +183,30 @@ const App = () => {
     return deckIndex;
   }
 
-  const stackToDeck = (cardStack: number[], prevDeckIndex: number, nextDeckIndex: number) => {
+  const stackToDeck = (cardStack: number[], prevDeckIndex: number, prevTopDeckIndex: number, nextDeckIndex: number) => {
+    let newStock = stock.slice();
     const newDeck = deck.slice();
-    if (prevDeckIndex === -1) { // stocked
-      let newStock = stock.slice();
+    const newTopDeck = topDeck.slice();
+    if (prevDeckIndex === -1 && prevTopDeckIndex === -1) { // stocked
       newStock = newStock.filter(s => !cardStack.includes(s));
-      setStock(newStock);
     }
-    else {
+    else if (prevDeckIndex !== -1) { // in deck
       newDeck[prevDeckIndex] = newDeck[prevDeckIndex].filter(d => !cardStack.includes(d));
     }
+    else if (cardStack.length === 1 && prevTopDeckIndex !== -1) { // in topDeck
+      newTopDeck[prevTopDeckIndex].pop();
+    }
     newDeck[nextDeckIndex].push(...cardStack);
+
+    setStock(newStock);
     setDeck(newDeck);
+    setTopDeck(newTopDeck);
   }
 
   const cardEvent = (cardIndex: number, mouseDownEvent: React.MouseEvent) => {
     if (cardDatas[cardIndex].status === 'open') {
       const deckIndex = cardDatas[cardIndex].deckIndex;
+      const topDeckIndex = cardDatas[cardIndex].topDeckIndex;
       let selectedStack = [cardIndex];
       if (deckIndex !== -1) {
         selectedStack = deck[deckIndex].slice(deck[deckIndex].indexOf(cardIndex));
@@ -162,7 +214,7 @@ const App = () => {
 
       const prevX = cardDatas[cardIndex].x;
       const prevY = cardDatas[cardIndex].y;
-      checkDeck(cardIndex, deckIndex, mouseDownEvent.pageX, mouseDownEvent.pageY);
+      // checkDeck(cardIndex, deckIndex, mouseDownEvent.pageX, mouseDownEvent.pageY);
 
       const mouseMove = (mouseMoveEvent: MouseEvent) => {
         const newCardDatas = cardDatas.slice();
@@ -185,11 +237,15 @@ const App = () => {
         if (checkDeck(cardIndex, deckIndex, mouseMoveEvent.pageX, mouseMoveEvent.pageY) === -1) {
           setFocusedDeck(-1);
         }
+        if (checkTopDeck(cardIndex, topDeckIndex, mouseMoveEvent.pageX, mouseMoveEvent.pageY) == -1) {
+          setFocusedTopDeck(-1);
+        }
         setCardDatas(newCardDatas);
       }
 
       const mouseUp = (mouseUpEvent: MouseEvent) => {
         const moveResult = checkDeck(cardIndex, deckIndex, mouseUpEvent.pageX, mouseUpEvent.pageY);
+        const topMoveResult = selectedStack.length === 1 ? checkTopDeck(selectedStack[0], topDeckIndex, mouseUpEvent.pageX, mouseUpEvent.pageY) : -1;
         const newCardDatas = cardDatas.slice();
 
         selectedStack.forEach((cardIndex, stackIndex) => {
@@ -199,25 +255,39 @@ const App = () => {
               y: deckTop + baseFontSize / 2 + (deck[moveResult].length + stackIndex) * baseFontSize * 2,
               isClicked: false,
               deckIndex: moveResult,
+              topDeckIndex: -1,
+              status: 'open',
+            };
+          }
+          else if (topMoveResult !== -1) {
+            newCardDatas[cardIndex] = {
+              x: topDeckLeft + topMoveResult * baseFontSize * 7 + baseFontSize / 2,
+              y: topDeckTop + baseFontSize / 2,
+              isClicked: false,
+              deckIndex: -1,
+              topDeckIndex: topMoveResult,
               status: 'open',
             };
           }
           else {
             newCardDatas[cardIndex] = {
+              ...newCardDatas[cardIndex],
               x: prevX,
               y: prevY + stackIndex * baseFontSize * 2,
               isClicked: false,
-              deckIndex: deckIndex,
-              status: 'open',
             };
           }
         });
 
-        if (moveResult !== -1) {
-          stackToDeck(selectedStack, deckIndex, moveResult);
+        if (moveResult !== -1) { // stack to deck
+          stackToDeck(selectedStack, deckIndex, topDeckIndex, moveResult);
+        }
+        else if (topMoveResult !== -1) { // stack to top deck
+          stackToTopDeck(selectedStack[0], deckIndex, topMoveResult);
         }
         setCardDatas(newCardDatas);
         setFocusedDeck(-1);
+        setFocusedTopDeck(-1);
         document.removeEventListener('mousemove', mouseMove);
       }
 
@@ -263,29 +333,21 @@ const App = () => {
 
       setCardDatas(newCardDatas);
       setZIndex(zIndex + 1);
-      console.log(cardIndex);
+      // console.log(cardIndex);
     }
   }
+
+  const suit = ['Club', 'Diamond', 'Spade', 'Heart'];
+  const rank = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
   const defineSuit = (n: number) => {
-    if (n === 0) {
-      return 'Club';
-    }
-    else if (n === 1) {
-      return 'Diamond';
-    }
-    else if (n === 2) {
-      return 'Spade';
-    }
-    else if (n === 3) {
-      return 'Heart';
+    if (0 <= n && n < 4) {
+      return suit[n];
     }
     else {
-      return 'ERROR';
+      return 'Error';
     }
   }
-
-  const rank = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
   const defineRank = (n: number) => {
     if (0 <= n && n <= 13) {
@@ -314,7 +376,7 @@ const App = () => {
               deckIndex: -1,
               status: 'stock',
             }
-            
+
             if (cardRefs.current[cardIndex] !== null) {
               cardRefs.current[cardIndex]!.style.zIndex = (zIndex + i).toString();
             }
@@ -328,10 +390,13 @@ const App = () => {
           key={i}
           className={styles.deck}
           style={{
-            left: baseFontSize * 33 + i * baseFontSize * 7,
-            top: baseFontSize * 3,
+            left: topDeckLeft + i * baseFontSize * 7,
+            top: topDeckTop,
+            border: `${focusedTopDeck === i ? 2 : 0}px solid yellow`
           }}
-        />
+        >
+          {defineSuit(i)}
+        </div>
       ))}
       {deck.map((d, i) => (
         <div

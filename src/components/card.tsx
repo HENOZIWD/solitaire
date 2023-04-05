@@ -21,6 +21,7 @@ const Card = forwardRef<HTMLDivElement, ICardProps>((props: ICardProps, ref) => 
       style={{ 
         transform: `translateX(${props.x}px) translateY(${props.y}px) scale(${props.isClicked ? 0.9 : 1})`,
         backgroundColor: `${props.status === 'open' ? 'white' : 'lightblue'}`,
+        color: `${props.suit === 'Diamond' || props.suit === 'Heart' ? 'red' : 'black'}`
       }}
       onMouseDown={props.onMouseDown}
     >

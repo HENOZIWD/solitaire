@@ -95,7 +95,7 @@ const App = () => {
         deckIndex: -1,
         status: 'stock',
       }
-    })
+    });
 
     setCardDatas(newCardDatas);
     setZIndex(zIndex + 7);
@@ -248,6 +248,23 @@ const App = () => {
       document.addEventListener('mousemove', mouseMove);
       document.addEventListener('mouseup', mouseUp, { once: true });
     }
+    else if (cardDatas[cardIndex].status === 'stock') {
+      const newCardDatas = cardDatas.slice();
+      newCardDatas[cardIndex] = {
+        ...newCardDatas[cardIndex],
+        x: stockLeft + baseFontSize * 8,
+        y: stockTop + baseFontSize / 2,
+        status: 'open',
+      }
+      
+      if (cardRefs.current[cardIndex] !== null) {
+        cardRefs.current[cardIndex]!.style.zIndex = zIndex.toString();
+      }
+
+      setCardDatas(newCardDatas);
+      setZIndex(zIndex + 1);
+      console.log(cardIndex);
+    }
   }
 
   const defineSuit = (n: number) => {
@@ -287,6 +304,24 @@ const App = () => {
       <div
         className={styles.stock}
         style={{ backgroundColor: 'lightblue' }}
+        onClick={() => {
+          const newCardDatas = cardDatas.slice();
+          stock.forEach((cardIndex, i) => {
+            newCardDatas[cardIndex] = {
+              ...newCardDatas[cardIndex],
+              x: stockLeft + baseFontSize / 2,
+              y: stockTop + baseFontSize / 2,
+              deckIndex: -1,
+              status: 'stock',
+            }
+            
+            if (cardRefs.current[cardIndex] !== null) {
+              cardRefs.current[cardIndex]!.style.zIndex = (zIndex + i).toString();
+            }
+          });
+          setCardDatas(newCardDatas);
+          setZIndex(zIndex + stock.length);
+        }}
       />
       {topDeck.map((td, i) => (
         <div 

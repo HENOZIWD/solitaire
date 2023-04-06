@@ -35,26 +35,20 @@ const App = () => {
       status: 'stock',
     })));
   const [zIndex, setZIndex] = useState<number>(1);
-  // const [deck, setDeck] = useState<number[][]>(Array.from({ length: 7 }, () => []));
-  const [deck, setDeck] = useState<number[][]>([
-    [0],
-    [5, 2],
-    [7, 3, 8],
-    [13, 38, 43, 22],
-    [1, 51, 50, 44, 33],
-    [15, 17, 14, 21, 30, 48],
-    [10, 20, 47, 32, 19, 29, 11],
-  ]);
+  const [deck, setDeck] = useState<number[][]>(Array.from({ length: 7 }, () => []));
   const [focusedDeck, setFocusedDeck] = useState<number>(-1);
   const [focusedTopDeck, setFocusedTopDeck] = useState<number>(-1);
-  const [stock, setStock] = useState<number[]>([
-    4, 6, 9, 12, 16, 18, 23, 24, 25, 26, 27, 28, 31, 34, 35,
-    36, 37, 39, 40, 41, 42, 45, 46, 49,
-  ]);
-  const [stockIndex, setStockIndex] = useState<number>(0);
+  const [stock, setStock] = useState<number[]>([]);
   const [topDeck, setTopDeck] = useState<number[][]>(Array.from({ length: 4 }, () => []));
 
   const cardRefs = useRef<HTMLDivElement[] | null[]>([]);
+
+  const getRandomInt = (min: number, max: number) => { // include max range
+    min = Math.ceil(min);
+    max = Math.floor(max);
+
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
 
   useEffect(() => {
     const newCardDatas = cardDatas.slice();
@@ -67,11 +61,11 @@ const App = () => {
       }
     });
     setCardDatas(newCardDatas);
-    console.log(deck);
+    // console.log(deck);
   }, [deck])
 
   useEffect(() => {
-    console.log(topDeck);
+    // console.log(topDeck);
   }, [topDeck])
 
   useEffect(() => {
@@ -79,9 +73,30 @@ const App = () => {
     ** When Game Starts
     */
 
+    let startStock = Array.from({ length: 52 }, (v, i) => i);
+    const startDeck = [];
+    for (let i = 0; i < 7; i++) {
+      const currentDeck = [];
+      for (let j = 0; j <= i; j++) {
+        let randomInt = getRandomInt(0, 51);
+        while (!startStock.includes(randomInt)) { // if duplicated
+          randomInt = getRandomInt(0, 51); // re-generate
+        }
+        currentDeck.push(randomInt);
+        startStock = startStock.filter(n => n !== randomInt);
+      }
+      startDeck.push(currentDeck);
+    }
+
+    // shuffle stock with Fisher-Yates algorithm
+    for (let i = startStock.length - 1; i > 0; i--) {
+      const randomInt = getRandomInt(0, i);
+      [startStock[randomInt], startStock[i]] = [startStock[i], startStock[randomInt]];
+    }
+
     const newCardDatas = cardDatas.slice();
 
-    deck.forEach((d, deckIndex) => {
+    startDeck.forEach((d, deckIndex) => {
       d.forEach((cardIndex, i) => {
         newCardDatas[cardIndex] = {
           ...newCardDatas[cardIndex],
@@ -96,7 +111,7 @@ const App = () => {
       });
     });
 
-    stock.forEach((cardIndex) => {
+    startStock.forEach((cardIndex, i) => {
       newCardDatas[cardIndex] = {
         ...newCardDatas[cardIndex],
         x: stockLeft + baseFontSize / 2,
@@ -104,11 +119,18 @@ const App = () => {
         deckIndex: -1,
         status: 'stock',
       }
+      if (cardRefs.current[cardIndex] !== null) {
+        cardRefs.current[cardIndex]!.style.zIndex = (zIndex + i).toString();
+      }
     });
 
+    setStock(startStock);
+    setDeck(startDeck);
     setCardDatas(newCardDatas);
-    setZIndex(zIndex + 7);
-    console.log("start");
+    setZIndex(z => z + startStock.length);
+    // console.log("start");
+    // console.log(startStock);
+    // console.log(startDeck);
   }, [])
 
   const checkBoundary = (val: number, min: number, max: number, pad: number) => {
@@ -237,7 +259,7 @@ const App = () => {
         if (checkDeck(cardIndex, deckIndex, mouseMoveEvent.pageX, mouseMoveEvent.pageY) === -1) {
           setFocusedDeck(-1);
         }
-        if (checkTopDeck(cardIndex, topDeckIndex, mouseMoveEvent.pageX, mouseMoveEvent.pageY) == -1) {
+        if (checkTopDeck(cardIndex, topDeckIndex, mouseMoveEvent.pageX, mouseMoveEvent.pageY) === -1) {
           setFocusedTopDeck(-1);
         }
         setCardDatas(newCardDatas);
@@ -311,7 +333,7 @@ const App = () => {
         }
       });
       setCardDatas(newCardDatas);
-      setZIndex(zIndex + selectedStack.length);
+      setZIndex(z => z + selectedStack.length);
 
       console.log(zIndex);
 
@@ -332,7 +354,7 @@ const App = () => {
       }
 
       setCardDatas(newCardDatas);
-      setZIndex(zIndex + 1);
+      setZIndex(z => z + 1);
       // console.log(cardIndex);
     }
   }
@@ -382,7 +404,7 @@ const App = () => {
             }
           });
           setCardDatas(newCardDatas);
-          setZIndex(zIndex + stock.length);
+          setZIndex(z => z + stock.length);
         }}
       />
       {topDeck.map((td, i) => (
